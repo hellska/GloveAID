@@ -104,7 +104,7 @@ void serialEvent(Serial p) {
         sensor5 = true;
         sensor4 = false;
         counter = 0;  
-        println("sensor 1: ",s1);
+        //println("sensor 1: ",s1);
         s5 = "";
         break;
       case ',':
@@ -117,11 +117,11 @@ void serialEvent(Serial p) {
         sensor5 = false;
         send = true;
         OscMessage sensorsList = new OscMessage("/wek/inputs");
-        sensorsList.add(s1);
-        sensorsList.add(s2);
-        sensorsList.add(s3);
-        sensorsList.add(s4);
-        sensorsList.add(s5);
+        sensorsList.add(float(s1));
+        sensorsList.add(float(s2));
+        sensorsList.add(float(s3));
+        sensorsList.add(float(s4));
+        sensorsList.add(float(s5));
         AID_serial_osc.send(sensorsList, wekinatorOut);
         //send = false;
    println("Message sent");
