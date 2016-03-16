@@ -4,6 +4,7 @@ import netP5.*;
 
 OscP5 AID_serial_osc;
 NetAddress wekinatorOut;
+UdpPacketListener udpPktLstn;
 
 Serial imputPort;
 int value;
@@ -12,11 +13,20 @@ boolean sensor2 = false;
 boolean sensor3 = false;
 boolean sensor4 = false;
 boolean sensor5 = false;
+boolean mpuYawB = false;
+boolean mpuPitchB = false;
+boolean mpuRollB = false;
+
 String s1 = "";
 String s2 = "";
 String s3 = "";
 String s4 = "";
 String s5 = "";
+String mpuYaw = "";
+String mpuPitch = "";
+String mpuRoll = "";
+
+
 char input;
 int counter = 0;
 int now = 0;
@@ -43,9 +53,13 @@ void setup() {
   }
   AID_serial_osc = new OscP5(this, 9000);
   //wekinatorOut = new NetAddress("127.0.0.1", 6448);
-  wekinatorOut = new NetAddress("192.168.0.159", 6448);
+  wekinatorOut = new NetAddress("192.168.0.161", 6448);
   size(200,200);
   now = millis();
+  
+  // int oscstat = AID_serial_osc.status();
+  // println(oscstat);
+  
 }
   
 void draw() {
@@ -68,7 +82,7 @@ void serialEvent(Serial p) {
   // get message till line break (ASCII > 13)
   // signal = input.read();
   // String message = p.readStringUntil(13);
-  if (millis()-now>10000) {
+
     
 
     value = p.read();
@@ -107,23 +121,49 @@ void serialEvent(Serial p) {
         //println("sensor 1: ",s1);
         s5 = "";
         break;
+      case 'Y':
+        sensor5 = false;
+        mpuYawB = true;
+        counter = 0;
+        mpuYaw = "";
+        break;
+      case 'P':
+        mpuYawB = false;
+        mpuPitchB = true;
+        mpuPitch = "";
+        counter = 0;
+        break;
+      case 'R':
+        mpuPitchB = false;
+        mpuRollB = true;
+        mpuRoll = "";
+        counter = 0;
+        break;  
       case ',':
         println("sensor 1: ",s1);
         println("sensor 2: ",s2);
         println("sensor 3: ",s3);
         println("sensor 4: ",s4);
         println("sensor 5: ",s5);
+        println("mpu Yaw: ", mpuYaw);
+        println("mpu pitch: ", mpuPitch);
+        println("mpu roll: ", mpuRoll);
         println("NEXT SET ");
         sensor5 = false;
         send = true;
-        OscMessage sensorsList = new OscMessage("/wek/inputs");
-        sensorsList.add(float(s1));
-        sensorsList.add(float(s2));
-        sensorsList.add(float(s3));
-        sensorsList.add(float(s4));
-        sensorsList.add(float(s5));
-        AID_serial_osc.send(sensorsList, wekinatorOut);
-        //send = false;
+        if (millis()-now>10000) {
+          OscMessage sensorsList = new OscMessage("/wek/inputs");
+          sensorsList.add(float(s1));
+          sensorsList.add(float(s2));
+          sensorsList.add(float(s3));
+          sensorsList.add(float(s4));
+          sensorsList.add(float(s5));
+          sensorsList.add(float(mpuYaw));
+          sensorsList.add(float(mpuPitch));
+          sensorsList.add(float(mpuRoll));
+          AID_serial_osc.send(sensorsList, wekinatorOut);
+          //send = false;
+        }
    println("Message sent");
         break;
       default:
@@ -147,7 +187,19 @@ void serialEvent(Serial p) {
           s5 += input;
           counter +=1;
         }
+        else if (mpuYawB) {
+          mpuYaw += input;
+          counter +=1;
+        }
+        else if (mpuPitchB) {
+          mpuPitch += input;
+          counter +=1; 
+        }
+        else if (mpuRollB) {
+          mpuRoll += input;
+          counter +=1; 
+        }
         break;
     }
-  }
+
 }
